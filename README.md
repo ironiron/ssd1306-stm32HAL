@@ -1,44 +1,49 @@
-# ssd1306-stm32HAL
-ssd1306 library for stm32 using stm32-hal library's.
-This library works with i2c and is configured for 128x64 oled panels by default.
+# About 
+This is a modified version of library from [https://github.com/4ilo/ssd1306-stm32HAL](https://github.com/4ilo/ssd1306-stm32HAL) which is made by Olivier Van den Eede.
 
-If you search 4-wire SPI support, you can find it in the [afiskon/stm32-ssd1306](https://github.com/afiskon/stm32-ssd1306) fork.
-
-If you need a font generator to add custom fonts you can find it here: [the-this-pointer/glcd-font-calculator](https://github.com/the-this-pointer/glcd-font-calculator).
+I have ported this library to C++, separeted hardware related functions to different files, added some functions for primitive drawings (like draw horizontal line etc.) 
+and for display controll (flip screen etc.). 
 
 ## Usage
-
-Compile and link the library files in your project.
-
-    - font.c 
-    - ssd1306.c
-
-A full example for stm32f411 discovery is located in the example folder.
 
 Small example:
 
 ```
 #include "ssd1306.h"
-#include "fonts.h"
 
-I2C_HandleTypeDef hi2c1;
+I2C_HandleTypeDef hi2c1; // from stm32 HAL library
 
-// Init lcd using one of the stm32HAL i2c typedefs
-ssd1306_Init(&hi2c1);
-
-// Write data to local screenbuffer
-ssd1306_SetCursor(0, 36);
-ssd1306_WriteString("4ilo", Font_11x18, White);
+SSD1306 oled(&hi2c1, 64);
+// At this point I2C interface should be initialized by user.
+oled.Initialize();
+oled.Set_Cursor(0, 0);
+oled.Set_Font_size(Fonts::font_16x26);
+oled.Write_String("Hello!");
+oled.Update_Screen();
 
 // Copy all data from local screenbuffer to the screen
-ssd1306_UpdateScreen(&hi2c1);
-
+oled.Update_Screen();
 ```
+I2C interface have to be initialized before using this library
 
-### 128x32 example
-The library can be used with different screen sizes by redefining the `SSD1306_WIDTH` and `SSD_1306_HEIGHT` defines.
-Some smaller screens might be wired with interlacing, if you encounter issues related to interlacing defining `SSD1306_COM_LR_REMAP` will configure the controller to support this feature.
+### Using 128x32 displays
 
+Some vendors provides displays with different internal hardware configuration so if your displays shows some artefacts, try using e.g.
 ```
-make EXTRA_CFLAGS="-DSSD1306_HEIGHT=32 -DSSD1306_COM_LR_REMAP"
+SSD1306 oled(&hi2c1, 32, SSD1306::SEQ_NOREMAP);
 ```
+### File structure and font
+
+Files under *Inc*, *Src* and *Hardware* directories are compulsory. In *Examples* there's a simple showcase. *Tests* directory contains unit tests in catch2 framework for development machine. 
+You can safely ommit *Examples*, *Tests*, *docs*.
+
+If you need a font generator to add custom fonts you can find it here: [the-this-pointer/glcd-font-calculator](https://github.com/the-this-pointer/glcd-font-calculator).
+However maximal font width is hardcoded to 16.
+
+## Porting to other microcontroller or HAL library
+
+Only *SSD1306_hardware.cpp* and *SSD1306_hardware_conf.hpp* files have to be modified. 
+*SSD1306_hardware_conf.hpp* holds type definition of underlying connection socket (be this I2C or SPI) and include header of HAL library.
+*SSD1306_hardware.cpp* provides 2 functions to write command and data into displays controller. You can use constant member `control_b_data` and
+`control_b_command` to indicate type of message (this is memory address). 
+

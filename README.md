@@ -2,7 +2,7 @@
 This is a modified version of library from [https://github.com/4ilo/ssd1306-stm32HAL](https://github.com/4ilo/ssd1306-stm32HAL) which is made by Olivier Van den Eede.
 
 I have ported this library to C++, separeted hardware related functions to different files, added some functions for primitive drawings (like draw horizontal line etc.) 
-and for display controll (flip screen etc.). 
+and for display control (flip screen etc.). 
 
 ## Usage
 
@@ -19,8 +19,6 @@ oled.Initialize();
 oled.Set_Cursor(0, 0);
 oled.Set_Font_size(Fonts::font_16x26);
 oled.Write_String("Hello!");
-oled.Update_Screen();
-
 // Copy all data from local screenbuffer to the screen
 oled.Update_Screen();
 ```
